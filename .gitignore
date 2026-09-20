@@ -1,6 +1,6 @@
 .claude/
-.idea/
-.vscode/
+.idea
+.vscode
 
 # Sandbox/editor artifacts that appear in this working dir
 .bash_profile
