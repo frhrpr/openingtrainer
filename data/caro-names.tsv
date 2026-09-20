@@ -1,0 +1,111 @@
+c4 c6	A11	English Opening: Caro-Kann Defensive System
+e4 c6	B10	Caro-Kann Defense
+e4 c6 Bc4	B10	Caro-Kann Defense: Hillbilly Attack
+e4 c6 Bc4 d5 Bb3 dxe4 Qh5	B10	Caro-Kann Defense: Hillbilly Attack, Schaeffer Gambit
+e4 c6 Nc3	B10	Caro-Kann Defense
+e4 c6 Nc3 d5	B10	Caro-Kann Defense
+e4 c6 Nc3 d5 Nf3	B10	Caro-Kann Defense: Two Knights Attack
+e4 c6 Nc3 d5 Nf3 Bg4	B11	Caro-Kann Defense: Two Knights Attack, Mindeno Variation
+e4 c6 Nc3 d5 Nf3 Bg4 h3 Bh5	B11	Caro-Kann Defense: Two Knights Attack, Mindeno Variation, Retreat Line
+e4 c6 Nc3 d5 Nf3 Bg4 h3 Bxf3	B11	Caro-Kann Defense: Two Knights Attack, Mindeno Variation, Exchange Line
+e4 c6 Nc3 d5 Nf3 dxe4 Ng5	B10	Caro-Kann Defense: Hector Gambit
+e4 c6 Nc3 d5 Qf3	B10	Caro-Kann Defense: Goldman Variation
+e4 c6 Nc3 d5 d3 dxe4 Bg5	B10	Caro-Kann Defense: Scorpion-Horus Gambit
+e4 c6 Nc3 d5 h3	B10	Caro-Kann Defense: St. Patrick's Attack
+e4 c6 Nf3 d5 d3	B10	Caro-Kann Defense: Endgame Offer
+e4 c6 Nf3 d5 d3 dxe4 Ng5	B10	Caro-Kann Defense: Dinic Gambit
+e4 c6 Nf3 d5 d3 dxe4 dxe4 Qxd1+ Kxd1	B10	Caro-Kann Defense: Endgame Variation
+e4 c6 Nf3 d5 exd5 cxd5 Ne5	B10	Caro-Kann Defense: Apocalypse Attack
+e4 c6 b3	B10	Caro-Kann Defense: Euwe Attack
+e4 c6 b4	B10	Caro-Kann Defense: Labahn Attack
+e4 c6 b4 d5 b5	B10	Caro-Kann Defense: Labahn Attack, Double Gambit
+e4 c6 b4 e5 Bb2	B10	Caro-Kann Defense: Labahn Attack, Polish Variation
+e4 c6 c4	B10	Caro-Kann Defense: Accelerated Panov Attack
+e4 c6 c4 d5	B10	Caro-Kann Defense: Accelerated Panov Attack
+e4 c6 c4 d5 cxd5 cxd5 Qb3	B10	Caro-Kann Defense: Accelerated Panov Attack, Van Weersel Attack
+e4 c6 c4 d5 e5	B10	Caro-Kann Defense: Toikkanen Gambit
+e4 c6 c4 d5 exd5 Qxd5	B10	Caro-Kann Defense: Accelerated Panov Attack, Pseudo-Scandinavian
+e4 c6 c4 d5 exd5 cxd5 cxd5 Nf6	B10	Caro-Kann Defense: Accelerated Panov Attack, Modern Variation
+e4 c6 c4 e5	B10	Caro-Kann Defense: Accelerated Panov Attack, Open Variation
+e4 c6 d3	B10	Caro-Kann Defense: Breyer Variation
+e4 c6 d3 d5 Nd2 g6 Ngf3 Bg7 g3 e5 Bg2 Ne7 O-O O-O b4	B10	Caro-Kann Defense: Breyer Variation, Stein Attack
+e4 c6 d4	B12	Caro-Kann Defense
+e4 c6 d4 Na6	B12	Caro-Kann Defense: De Bruycker Defense
+e4 c6 d4 Na6 Nc3 Nc7	B12	Caro-Kann Defense: De Bruycker Defense
+e4 c6 d4 Nf6	B12	Caro-Kann Defense: Masi Variation
+e4 c6 d4 d5	B12	Caro-Kann Defense
+e4 c6 d4 d5 Bd3 Nf6 e5 Nfd7 e6	B12	Caro-Kann Defense: Mieses Attack, Landau Gambit
+e4 c6 d4 d5 Be3	B12	Caro-Kann Defense: Mieses Gambit
+e4 c6 d4 d5 Nc3	B15	Caro-Kann Defense
+e4 c6 d4 d5 Nc3 Nf6	B15	Caro-Kann Defense: Campomanes Attack
+e4 c6 d4 d5 Nc3 b5	B15	Caro-Kann Defense: Gurgenidze Counterattack
+e4 c6 d4 d5 Nc3 dxe4	B15	Caro-Kann Defense
+e4 c6 d4 d5 Nc3 dxe4 Bc4	B15	Caro-Kann Defense: von Hennig Gambit
+e4 c6 d4 d5 Nc3 dxe4 Nxe4 Nd7 Nf3 Ngf6 Ng3	B17	Caro-Kann Defense: Karpov Variation, Modern Variation, Kasparov Attack
+e4 c6 d4 d5 Nc3 dxe4 Nxe4 Nf6 Bd3	B15	Caro-Kann Defense: Alekhine Gambit
+e4 c6 d4 d5 Nc3 dxe4 Nxe4 Nf6 Ng5 h6 Nxf7	B15	Caro-Kann Defense: Alien Gambit
+e4 c6 d4 d5 Nc3 dxe4 Nxe4 Nf6 Nxf6+ exf6	B15	Caro-Kann Defense: Tartakower Variation
+e4 c6 d4 d5 Nc3 dxe4 Nxe4 Nf6 Nxf6+ exf6 Bc4	B15	Caro-Kann Defense: Forgacs Variation
+e4 c6 d4 d5 Nc3 dxe4 Nxe4 Nf6 Nxf6+ exf6 c3 Bd6 Bd3 O-O Qc2 h6	B15	Caro-Kann Defense: Tartakower Variation, Perlis Line
+e4 c6 d4 d5 Nc3 dxe4 Nxe4 Nf6 Nxf6+ gxf6	B16	Caro-Kann Defense: Bronstein-Larsen Variation
+e4 c6 d4 d5 Nc3 dxe4 f3	B15	Caro-Kann Defense: Rasa-Studier Gambit
+e4 c6 d4 d5 Nc3 g6	B15	Caro-Kann Defense: Gurgenidze System
+e4 c6 d4 d5 Nd2	B12	Caro-Kann Defense: Modern Variation
+e4 c6 d4 d5 Nd2 Qb6	B12	Caro-Kann Defense: Edinburgh Variation
+e4 c6 d4 d5 Nd2 dxe4 Nxe4	B15	Caro-Kann Defense: Main Line
+e4 c6 d4 d5 Nd2 dxe4 Nxe4 Bf5	B18	Caro-Kann Defense: Classical Variation
+e4 c6 d4 d5 Nd2 dxe4 Nxe4 Bf5 Ng3 Bg6 Nh3	B18	Caro-Kann Defense: Classical Variation, Flohr Variation
+e4 c6 d4 d5 Nd2 dxe4 Nxe4 Bf5 Ng3 Bg6 f4	B18	Caro-Kann Defense: Classical Variation, Maróczy Attack
+e4 c6 d4 d5 Nd2 dxe4 Nxe4 Bf5 Ng3 Bg6 h4	B18	Caro-Kann Defense: Classical Variation, Main Line
+e4 c6 d4 d5 Nd2 dxe4 Nxe4 Bf5 Ng3 Bg6 h4 h6 Nf3 Nd7	B19	Caro-Kann Defense: Classical Variation
+e4 c6 d4 d5 Nd2 dxe4 Nxe4 Bf5 Ng3 Bg6 h4 h6 Nf3 Nd7 h5	B19	Caro-Kann Defense: Classical Variation, Spassky Variation
+e4 c6 d4 d5 Nd2 dxe4 Nxe4 Bf5 Ng3 Bg6 h4 h6 Nf3 Nd7 h5 Bh7 Bd3 Bxd3 Qxd3 Ngf6 Bd2 e6 O-O-O Bd6	B19	Caro-Kann Defense: Classical Variation, Seirawan Variation
+e4 c6 d4 d5 Nd2 dxe4 Nxe4 Bf5 Ng3 Bg6 h4 h6 Nf3 Nd7 h5 Bh7 Bd3 Bxd3 Qxd3 e6 Bd2 Ngf6 O-O-O Be7	B19	Caro-Kann Defense: Classical Variation, Lobron System
+e4 c6 d4 d5 Nd2 dxe4 Nxe4 Bf5 Ng5 Bg6 N1f3 h6 Ne6	B18	Caro-Kann Defense: Martian Gambit
+e4 c6 d4 d5 Nd2 dxe4 Nxe4 Nd7	B17	Caro-Kann Defense: Karpov Variation
+e4 c6 d4 d5 Nd2 dxe4 Nxe4 Nd7 Bc4 Ngf6 Ng5 e6 Qe2 Nb6	B17	Caro-Kann Defense: Karpov Variation, Smyslov Variation
+e4 c6 d4 d5 Nd2 dxe4 Nxe4 Nd7 Bc4 Ngf6 Ng5 e6 Qe2 Nb6 Bb3	B17	Caro-Kann Defense: Karpov Variation, Smyslov Variation, Main Line
+e4 c6 d4 d5 Nd2 dxe4 Nxe4 Nd7 Bc4 Ngf6 Nxf6+ Nxf6	B17	Caro-Kann Defense: Karpov Variation, Tiviakov-Fischer Attack
+e4 c6 d4 d5 Nd2 dxe4 Nxe4 Nd7 Ng5	B17	Caro-Kann Defense: Karpov Variation, Modern Variation
+e4 c6 d4 d5 Nd2 dxe4 Nxe4 Nd7 Ng5 Ndf6	B17	Caro-Kann Defense: Karpov Variation, Modern Variation, Ivanchuk Defense
+e4 c6 d4 d5 Nd2 dxe4 Nxe4 Nd7 Ng5 Ngf6 Bd3 e6 N1f3 Bd6 Qe2 h6 Ne4 Nxe4 Qxe4	B17	Caro-Kann Defense: Karpov Variation, Modern Main Line
+e4 c6 d4 d5 Nd2 dxe4 Nxe4 h6	B16	Caro-Kann Defense: Finnish Variation
+e4 c6 d4 d5 Nf3 dxe4 Ng5	B12	Caro-Kann Defense: Ulysses Gambit
+e4 c6 d4 d5 e5	B12	Caro-Kann Defense: Advance Variation
+e4 c6 d4 d5 e5 Bf5 Nc3	B12	Caro-Kann Defense: Advance Variation, Van der Wiel Attack
+e4 c6 d4 d5 e5 Bf5 Nc3 Qb6	B12	Caro-Kann Defense: Advance Variation, Van der Wiel Attack, Dreyev Defense
+e4 c6 d4 d5 e5 Bf5 Nc3 e6 g4 Bg6 Nge2 c5 h4	B12	Caro-Kann Defense: Advance Variation, Van der Wiel Attack
+e4 c6 d4 d5 e5 Bf5 Ne2	B12	Caro-Kann Defense: Advance Variation, Bronstein Variation
+e4 c6 d4 d5 e5 Bf5 Nf3	B12	Caro-Kann Defense: Advance Variation, Short Variation
+e4 c6 d4 d5 e5 Bf5 b4	B12	Caro-Kann Defense: Advance Variation, Prins Attack
+e4 c6 d4 d5 e5 Bf5 c3 e6 Be2	B12	Caro-Kann Defense: Advance, Short Variation
+e4 c6 d4 d5 e5 Bf5 g4	B12	Caro-Kann Defense: Advance Variation, Bayonet Attack
+e4 c6 d4 d5 e5 Bf5 h4	B12	Caro-Kann Defense: Advance Variation, Tal Variation
+e4 c6 d4 d5 e5 c5	B12	Caro-Kann Defense: Advance Variation, Botvinnik-Carls Defense
+e4 c6 d4 d5 exd5	B13	Caro-Kann Defense: Exchange Variation
+e4 c6 d4 d5 exd5 cxd5	B13	Caro-Kann Defense: Exchange Variation
+e4 c6 d4 d5 exd5 cxd5 Bd3 Nc6 c3 Nf6 Bf4	B13	Caro-Kann Defense: Exchange Variation, Rubinstein Variation
+e4 c6 d4 d5 exd5 cxd5 Bf4	B13	Caro-Kann Defense: Exchange Variation
+e4 c6 d4 d5 exd5 cxd5 Nf3 Nc6	B13	Caro-Kann Defense: Exchange Variation
+e4 c6 d4 d5 exd5 cxd5 c4	B13	Caro-Kann Defense: Panov Attack
+e4 c6 d4 d5 exd5 cxd5 c4 Nc6 Nc3 Nf6 Nf3 e6 cxd5 exd5 Bb5 Bd6 Bg5 O-O O-O	B14	Caro-Kann Defense: Panov Attack
+e4 c6 d4 d5 exd5 cxd5 c4 Nc6 Nc3 Nf6 Nf3 e6 cxd5 exd5 Bb5 Bg4	B14	Caro-Kann Defense: Panov Attack
+e4 c6 d4 d5 exd5 cxd5 c4 Nf6 Nc3	B13	Caro-Kann Defense: Panov Attack
+e4 c6 d4 d5 exd5 cxd5 c4 Nf6 Nc3 Nc6	B13	Caro-Kann Defense: Panov Attack, Modern Defense
+e4 c6 d4 d5 exd5 cxd5 c4 Nf6 Nc3 Nc6 Bg5 Qa5	B13	Caro-Kann Defense: Panov Attack, Modern Defense, Czerniak Line
+e4 c6 d4 d5 exd5 cxd5 c4 Nf6 Nc3 Nc6 Bg5 Qb6	B13	Caro-Kann Defense: Panov Attack, Modern Defense, Reifir-Spielmann Line
+e4 c6 d4 d5 exd5 cxd5 c4 Nf6 Nc3 Nc6 Bg5 dxc4 d5 Na5	B13	Caro-Kann Defense: Panov-Botvinnik, Herzog Defense
+e4 c6 d4 d5 exd5 cxd5 c4 Nf6 Nc3 Nc6 Bg5 e6	B13	Caro-Kann Defense: Panov Attack, Modern Defense, Carlsbad Line
+e4 c6 d4 d5 exd5 cxd5 c4 Nf6 Nc3 Nc6 Nf3 Bg4	B13	Caro-Kann Defense: Panov Attack, Modern Defense, Mieses Line
+e4 c6 d4 d5 exd5 cxd5 c4 Nf6 Nc3 Nc6 Nf3 e6 c5	B14	Caro-Kann Defense: Panov Attack
+e4 c6 d4 d5 exd5 cxd5 c4 Nf6 Nc3 e6	B14	Caro-Kann Defense: Panov Attack
+e4 c6 d4 d5 exd5 cxd5 c4 Nf6 Nc3 e6 Nf3 Bb4	B14	Caro-Kann Defense: Panov Attack, Main Line
+e4 c6 d4 d5 exd5 cxd5 c4 Nf6 Nc3 g6	B14	Caro-Kann Defense: Panov Attack, Fianchetto Defense
+e4 c6 d4 d5 exd5 cxd5 c4 Nf6 Nc3 g6 cxd5 Bg7	B14	Caro-Kann Defense: Panov Attack, Fianchetto Defense, Fianchetto Gambit
+e4 c6 d4 d5 exd5 cxd5 c4 Nf6 c5	B13	Caro-Kann Defense: Panov Attack, Gunderam Attack
+e4 c6 d4 d5 exd5 cxd5 g4	B13	Caro-Kann Defense: Exchange Variation, Bulla Attack
+e4 c6 d4 d5 f3	B12	Caro-Kann Defense: Maróczy Variation
+e4 c6 d4 d5 f3 dxe4 fxe4 e5 Nf3 exd4 Bc4	B12	Caro-Kann Defense: Maróczy Variation, Maróczy Gambit
+e4 c6 d4 f5	B12	Caro-Kann Defense: Massachusetts Defense
+e4 c6 g4	B10	Caro-Kann Defense: Spike Variation
+e4 c6 g4 d5 Nc3 dxe4 d3	B10	Caro-Kann Defense: Spike Variation, Scorpion-Grob Gambit
