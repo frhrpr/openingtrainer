@@ -1,3 +1,14 @@
 .claude/
 .idea/
 .vscode/
+
+# Sandbox/editor artifacts that appear in this working dir
+.bash_profile
+.bashrc
+.profile
+.zshrc
+.zprofile
+.gitconfig
+.gitmodules
+.ripgreprc
+.mcp.json
