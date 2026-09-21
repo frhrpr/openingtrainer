@@ -812,12 +812,42 @@ const CARO_TREE = {
   "e4 c6 d3 d5 Nd2": [["e5","main","Take the full centre — White's setup is too slow to punish it."],["g6","alt"],["dxe4","alt"]],
 
   // ── Offbeat second moves ──
+  // These are shallower than the main branches by design, but deep enough
+  // that a real game does not fall off the tree at move 3.
   "e4 c6 Bc4": [["d5","main","Hits the bishop immediately and White has already lost time."]],
+  "e4 c6 Bc4 d5": [["Bb3","main"],["exd5","side"],["Bd3","side"],["Be2","side"]],
+  "e4 c6 Bc4 d5 Bb3": [["dxe4","main","Take: the bishop on b3 is now biting on granite."],["Nf6","alt"]],
+  "e4 c6 Bc4 d5 Bb3 dxe4": [["Nc3","main"],["d3","side"],["Qh5","rare","The Schaeffer Gambit — objectively bad, but check for tricks."]],
+  "e4 c6 Bc4 d5 exd5": [["cxd5","main"]],
+  "e4 c6 Bc4 d5 exd5 cxd5": [["Bb3","main"],["Bb5+","side"],["Qh5","rare"]],
+
   "e4 c6 b3": [["d5","main"]],
+  "e4 c6 b3 d5": [["Bb2","main"],["exd5","side"],["e5","side"]],
+  "e4 c6 b3 d5 Bb2": [["dxe4","main"],["Nf6","alt"],["e5","alt","Takes the full centre and blunts the b2 bishop."]],
+  "e4 c6 b3 d5 exd5": [["cxd5","main"]],
+
   "e4 c6 Ne2": [["d5","main"]],
-  "e4 c6 f4": [["d5","main"]],
+  "e4 c6 Ne2 d5": [["exd5","main"],["e5","side"],["d4","side"],["Nbc3","side"]],
+  "e4 c6 Ne2 d5 exd5": [["cxd5","main"]],
+  "e4 c6 Ne2 d5 exd5 cxd5": [["d4","main"],["Nbc3","side"],["Ng3","side"]],
+
+  "e4 c6 f4": [["d5","main","Punish the loosening move in the centre at once."]],
+  "e4 c6 f4 d5": [["exd5","main"],["e5","side","Now ...c5 hits a chain White cannot easily support with f4 already played."],["Nf3","side"],["d3","side"],["Nc3","side"]],
+  "e4 c6 f4 d5 exd5": [["cxd5","main"]],
+  "e4 c6 f4 d5 exd5 cxd5": [["Nf3","main"],["d4","side"],["Bb5+","side"],["Nc3","side"],["d3","side"]],
+  "e4 c6 f4 d5 exd5 cxd5 Nf3": [["Nc6","main","Develop and eye the hole f4 has left on e3 and g3."],["Nf6","alt"],["Bg4","alt"]],
+  "e4 c6 f4 d5 exd5 cxd5 d4": [["Nc6","main"],["Nf6","alt"]],
+  "e4 c6 f4 d5 e5": [["c5","main","The f4 pawn cannot help defend d4 — hit the chain at its base."],["Bf5","alt"]],
+
   "e4 c6 g3": [["d5","main"]],
-  "e4 c6 g4": [["d5","main","Ignore the flank lunge and take the centre."]]
+  "e4 c6 g3 d5": [["Bg2","main"],["exd5","side"],["e5","side"]],
+  "e4 c6 g3 d5 Bg2": [["dxe4","main"],["Nf6","alt"],["e5","alt"]],
+
+  "e4 c6 g4": [["d5","main","Ignore the flank lunge and take the centre."]],
+  "e4 c6 g4 d5": [["exd5","side"],["e5","side"],["Nc3","main"],["d3","side"]],
+  "e4 c6 g4 d5 Nc3": [["dxe4","main"]],
+  "e4 c6 g4 d5 e5": [["c5","main"],["h5","alt","Striking at the overextended g-pawn straight away."]],
+  "e4 c6 g4 d5 exd5": [["cxd5","main"]]
 };
 
 let repertoire = 'off';          // 'off' | 'caro'
@@ -1568,15 +1598,55 @@ function navigateTo(idx) {
   // The board-end-banner is always shown when out of book; no need to hide it during review navigation.
 }
 
-// The repertoire verdict for a stored move, shown above the usual
-// frequency/engine feedback. Empty unless the mode tagged this move.
-function repVerdictHtml(entry) {
-  if (repertoire === 'off' || !entry || !entry.repTag) return '';
+// The repertoire card for a stored move. This REPLACES the frequency /
+// engine card when the mode has something to say; that card is the
+// fallback for positions the tree does not reach. Returns null when there
+// is nothing repertoire-specific to show.
+function repMoveCardHtml(entry, idx) {
+  if (repertoire === 'off' || !entry || !entry.repTag) return null;
   const [label, colour] = REP_LABEL[entry.repTag] || ['', 'var(--text2)'];
-  return '<div style="border-left:3px solid ' + colour + ';padding-left:8px;margin-bottom:8px">' +
-    '<div style="font-size:11px;color:' + colour + ';text-transform:uppercase;letter-spacing:0.5px;font-weight:600">' + label + '</div>' +
-    (entry.repNote ? '<div style="font-size:12px;color:var(--text2);line-height:1.45">' + entry.repNote + '</div>' : '') +
-    '</div>';
+  const pathBefore = repPath(idx);
+  const nm = repName(pathBefore + ' ' + entry.san);
+  const node = repNode(pathBefore);
+
+  let h = '<div style="font-size:11px;color:' + colour + ';text-transform:uppercase;letter-spacing:0.5px;font-weight:600">' + label + '</div>' +
+          '<div class="feedback-move">' + entry.san + '</div>';
+
+  if (nm) {
+    h += '<div style="font-size:13px;color:var(--accent);margin-bottom:6px">' + nm.name +
+         ' <span style="color:var(--text2);font-size:11px">' + nm.eco + (nm.exact ? '' : ' · nearest named') + '</span></div>';
+  }
+  if (entry.repNote) {
+    h += '<div style="font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:8px">' + entry.repNote + '</div>';
+  }
+
+  // Siblings: the other moves theory lists here. Safe to show — the move
+  // has already been played correctly, so nothing is being given away.
+  if (node) {
+    const others = node.filter(m => m[0] !== entry.san);
+    if (others.length) {
+      h += '<div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px">Also playable here</div>';
+      for (const [san, tag] of others) {
+        const [l, c] = REP_LABEL[tag] || ['', 'var(--text2)'];
+        h += '<div style="font-size:12px;margin-bottom:2px"><span style="font-weight:600">' + san +
+             '</span> <span style="font-size:11px;color:' + c + '">' + l + '</span></div>';
+      }
+    }
+  }
+  return h;
+}
+
+// Shown when the game has run past the end of the tree: the frequency card
+// is still useful, but say plainly that the repertoire no longer covers this.
+function repBeyondNoticeHtml(idx) {
+  if (repertoire === 'off') return '';
+  if (repNode(repPath(idx)) || repNode(repPath(idx + 1))) return '';
+  const nm = repName(repPath(idx + 1));
+  return '<div style="border-left:3px solid var(--text2);padding-left:8px;margin-bottom:8px">' +
+    '<div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px">Beyond the repertoire</div>' +
+    '<div style="font-size:12px;color:var(--text2);line-height:1.45">' +
+      (nm ? 'Still in the <strong>' + nm.name + '</strong>, but the tree does not cover this position. ' : '') +
+      'Falling back to database statistics.</div></div>';
 }
 
 function showFeedbackForView() {
@@ -1586,10 +1656,16 @@ function showFeedbackForView() {
     const entry = history[viewIndex];
     const isPlayerMove = entry.color === playerColor;
     // Show player feedback always; opponent feedback only after game ends
-    if (entry.feedbackHtml && (isPlayerMove || outOfBook)) {
-      card.style.display = '';
-      content.innerHTML = repVerdictHtml(entry) + entry.feedbackHtml;
-      return;
+    if (isPlayerMove || outOfBook) {
+      // Repertoire feedback takes precedence; the frequency/engine card is
+      // shown only where the tree has nothing to say.
+      const rep = repMoveCardHtml(entry, viewIndex);
+      if (rep) { card.style.display = ''; content.innerHTML = rep; return; }
+      if (entry.feedbackHtml) {
+        card.style.display = '';
+        content.innerHTML = repBeyondNoticeHtml(viewIndex) + entry.feedbackHtml;
+        return;
+      }
     }
   }
   card.style.display = 'none';
