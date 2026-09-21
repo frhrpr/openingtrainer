@@ -12,3 +12,4 @@
 .gitmodules
 .ripgreprc
 .mcp.json
+scripts/.chess.min.js

@@ -318,6 +318,13 @@
   <h1>♞ Opening Trainer</h1>
   <div class="settings-row">
     <div class="setting-group">
+      <label>Mode</label>
+      <select id="rep-select">
+        <option value="off">Free play</option>
+        <option value="caro">Caro-Kann</option>
+      </select>
+    </div>
+    <div class="setting-group">
       <label>Play as</label>
       <select id="color-select">
         <option value="w">White</option>
@@ -430,6 +437,10 @@
         <span class="stat-label">Status</span>
         <span id="game-status">In book</span>
       </div>
+      <div class="stat-row" id="rep-row" style="display:none">
+        <span class="stat-label">Repertoire</span>
+        <span id="rep-status" style="color:var(--accent)">—</span>
+      </div>
       <div class="stat-row">
         <span class="stat-label">Engine</span>
         <span id="engine-status" style="color:var(--amber)">Loading…</span>
@@ -500,6 +511,471 @@ let gameGeneration = 0;      // incremented on new game, prevents stale eval upd
 let isComputerTurn = false;
 let outOfBook = false;
 
+// ══ Caro-Kann repertoire mode ══════════════════════════════════════════
+// Two data sets drive this mode, both keyed by SAN move path with move
+// numbers stripped ("e4 c6 d4 d5"), so no FEN computation is needed.
+//
+// CARO_NAMES — variation names from lichess-org/chess-openings (CC0).
+// CARO_TREE  — hand-authored repertoire: which moves are theory's main
+//              lines vs sidelines. This is deliberately NOT derived from
+//              player frequency; that is what the explorer already gives.
+
+const CARO_NAMES = {
+"e4 c6":["B10","Caro-Kann Defense"],
+"e4 c6 Bc4":["B10","Caro-Kann Defense: Hillbilly Attack"],
+"e4 c6 Bc4 d5 Bb3 dxe4 Qh5":["B10","Caro-Kann Defense: Hillbilly Attack, Schaeffer Gambit"],
+"e4 c6 Nc3":["B10","Caro-Kann Defense"],
+"e4 c6 Nc3 d5":["B10","Caro-Kann Defense"],
+"e4 c6 Nc3 d5 Nf3":["B10","Caro-Kann Defense: Two Knights Attack"],
+"e4 c6 Nc3 d5 Nf3 Bg4":["B11","Caro-Kann Defense: Two Knights Attack, Mindeno Variation"],
+"e4 c6 Nc3 d5 Nf3 Bg4 h3 Bh5":["B11","Caro-Kann Defense: Two Knights Attack, Mindeno Variation, Retreat Line"],
+"e4 c6 Nc3 d5 Nf3 Bg4 h3 Bxf3":["B11","Caro-Kann Defense: Two Knights Attack, Mindeno Variation, Exchange Line"],
+"e4 c6 Nc3 d5 Nf3 dxe4 Ng5":["B10","Caro-Kann Defense: Hector Gambit"],
+"e4 c6 Nc3 d5 Qf3":["B10","Caro-Kann Defense: Goldman Variation"],
+"e4 c6 Nc3 d5 d3 dxe4 Bg5":["B10","Caro-Kann Defense: Scorpion-Horus Gambit"],
+"e4 c6 Nc3 d5 h3":["B10","Caro-Kann Defense: St. Patrick's Attack"],
+"e4 c6 Nf3 d5 d3":["B10","Caro-Kann Defense: Endgame Offer"],
+"e4 c6 Nf3 d5 d3 dxe4 Ng5":["B10","Caro-Kann Defense: Dinic Gambit"],
+"e4 c6 Nf3 d5 d3 dxe4 dxe4 Qxd1+ Kxd1":["B10","Caro-Kann Defense: Endgame Variation"],
+"e4 c6 Nf3 d5 exd5 cxd5 Ne5":["B10","Caro-Kann Defense: Apocalypse Attack"],
+"e4 c6 b3":["B10","Caro-Kann Defense: Euwe Attack"],
+"e4 c6 b4":["B10","Caro-Kann Defense: Labahn Attack"],
+"e4 c6 b4 d5 b5":["B10","Caro-Kann Defense: Labahn Attack, Double Gambit"],
+"e4 c6 b4 e5 Bb2":["B10","Caro-Kann Defense: Labahn Attack, Polish Variation"],
+"e4 c6 c4":["B10","Caro-Kann Defense: Accelerated Panov Attack"],
+"e4 c6 c4 d5":["B10","Caro-Kann Defense: Accelerated Panov Attack"],
+"e4 c6 c4 d5 cxd5 cxd5 Qb3":["B10","Caro-Kann Defense: Accelerated Panov Attack, Van Weersel Attack"],
+"e4 c6 c4 d5 e5":["B10","Caro-Kann Defense: Toikkanen Gambit"],
+"e4 c6 c4 d5 exd5 Qxd5":["B10","Caro-Kann Defense: Accelerated Panov Attack, Pseudo-Scandinavian"],
+"e4 c6 c4 d5 exd5 cxd5 cxd5 Nf6":["B10","Caro-Kann Defense: Accelerated Panov Attack, Modern Variation"],
+"e4 c6 c4 e5":["B10","Caro-Kann Defense: Accelerated Panov Attack, Open Variation"],
+"e4 c6 d3":["B10","Caro-Kann Defense: Breyer Variation"],
+"e4 c6 d3 d5 Nd2 g6 Ngf3 Bg7 g3 e5 Bg2 Ne7 O-O O-O b4":["B10","Caro-Kann Defense: Breyer Variation, Stein Attack"],
+"e4 c6 d4":["B12","Caro-Kann Defense"],
+"e4 c6 d4 Na6":["B12","Caro-Kann Defense: De Bruycker Defense"],
+"e4 c6 d4 Na6 Nc3 Nc7":["B12","Caro-Kann Defense: De Bruycker Defense"],
+"e4 c6 d4 Nf6":["B12","Caro-Kann Defense: Masi Variation"],
+"e4 c6 d4 d5":["B12","Caro-Kann Defense"],
+"e4 c6 d4 d5 Bd3 Nf6 e5 Nfd7 e6":["B12","Caro-Kann Defense: Mieses Attack, Landau Gambit"],
+"e4 c6 d4 d5 Be3":["B12","Caro-Kann Defense: Mieses Gambit"],
+"e4 c6 d4 d5 Nc3":["B15","Caro-Kann Defense"],
+"e4 c6 d4 d5 Nc3 Nf6":["B15","Caro-Kann Defense: Campomanes Attack"],
+"e4 c6 d4 d5 Nc3 b5":["B15","Caro-Kann Defense: Gurgenidze Counterattack"],
+"e4 c6 d4 d5 Nc3 dxe4":["B15","Caro-Kann Defense"],
+"e4 c6 d4 d5 Nc3 dxe4 Bc4":["B15","Caro-Kann Defense: von Hennig Gambit"],
+"e4 c6 d4 d5 Nc3 dxe4 Nxe4 Nd7 Nf3 Ngf6 Ng3":["B17","Caro-Kann Defense: Karpov Variation, Modern Variation, Kasparov Attack"],
+"e4 c6 d4 d5 Nc3 dxe4 Nxe4 Nf6 Bd3":["B15","Caro-Kann Defense: Alekhine Gambit"],
+"e4 c6 d4 d5 Nc3 dxe4 Nxe4 Nf6 Ng5 h6 Nxf7":["B15","Caro-Kann Defense: Alien Gambit"],
+"e4 c6 d4 d5 Nc3 dxe4 Nxe4 Nf6 Nxf6+ exf6":["B15","Caro-Kann Defense: Tartakower Variation"],
+"e4 c6 d4 d5 Nc3 dxe4 Nxe4 Nf6 Nxf6+ exf6 Bc4":["B15","Caro-Kann Defense: Forgacs Variation"],
+"e4 c6 d4 d5 Nc3 dxe4 Nxe4 Nf6 Nxf6+ exf6 c3 Bd6 Bd3 O-O Qc2 h6":["B15","Caro-Kann Defense: Tartakower Variation, Perlis Line"],
+"e4 c6 d4 d5 Nc3 dxe4 Nxe4 Nf6 Nxf6+ gxf6":["B16","Caro-Kann Defense: Bronstein-Larsen Variation"],
+"e4 c6 d4 d5 Nc3 dxe4 f3":["B15","Caro-Kann Defense: Rasa-Studier Gambit"],
+"e4 c6 d4 d5 Nc3 g6":["B15","Caro-Kann Defense: Gurgenidze System"],
+"e4 c6 d4 d5 Nd2":["B12","Caro-Kann Defense: Modern Variation"],
+"e4 c6 d4 d5 Nd2 Qb6":["B12","Caro-Kann Defense: Edinburgh Variation"],
+"e4 c6 d4 d5 Nd2 dxe4 Nxe4":["B15","Caro-Kann Defense: Main Line"],
+"e4 c6 d4 d5 Nd2 dxe4 Nxe4 Bf5":["B18","Caro-Kann Defense: Classical Variation"],
+"e4 c6 d4 d5 Nd2 dxe4 Nxe4 Bf5 Ng3 Bg6 Nh3":["B18","Caro-Kann Defense: Classical Variation, Flohr Variation"],
+"e4 c6 d4 d5 Nd2 dxe4 Nxe4 Bf5 Ng3 Bg6 f4":["B18","Caro-Kann Defense: Classical Variation, Maróczy Attack"],
+"e4 c6 d4 d5 Nd2 dxe4 Nxe4 Bf5 Ng3 Bg6 h4":["B18","Caro-Kann Defense: Classical Variation, Main Line"],
+"e4 c6 d4 d5 Nd2 dxe4 Nxe4 Bf5 Ng3 Bg6 h4 h6 Nf3 Nd7":["B19","Caro-Kann Defense: Classical Variation"],
+"e4 c6 d4 d5 Nd2 dxe4 Nxe4 Bf5 Ng3 Bg6 h4 h6 Nf3 Nd7 h5":["B19","Caro-Kann Defense: Classical Variation, Spassky Variation"],
+"e4 c6 d4 d5 Nd2 dxe4 Nxe4 Bf5 Ng3 Bg6 h4 h6 Nf3 Nd7 h5 Bh7 Bd3 Bxd3 Qxd3 Ngf6 Bd2 e6 O-O-O Bd6":["B19","Caro-Kann Defense: Classical Variation, Seirawan Variation"],
+"e4 c6 d4 d5 Nd2 dxe4 Nxe4 Bf5 Ng3 Bg6 h4 h6 Nf3 Nd7 h5 Bh7 Bd3 Bxd3 Qxd3 e6 Bd2 Ngf6 O-O-O Be7":["B19","Caro-Kann Defense: Classical Variation, Lobron System"],
+"e4 c6 d4 d5 Nd2 dxe4 Nxe4 Bf5 Ng5 Bg6 N1f3 h6 Ne6":["B18","Caro-Kann Defense: Martian Gambit"],
+"e4 c6 d4 d5 Nd2 dxe4 Nxe4 Nd7":["B17","Caro-Kann Defense: Karpov Variation"],
+"e4 c6 d4 d5 Nd2 dxe4 Nxe4 Nd7 Bc4 Ngf6 Ng5 e6 Qe2 Nb6":["B17","Caro-Kann Defense: Karpov Variation, Smyslov Variation"],
+"e4 c6 d4 d5 Nd2 dxe4 Nxe4 Nd7 Bc4 Ngf6 Ng5 e6 Qe2 Nb6 Bb3":["B17","Caro-Kann Defense: Karpov Variation, Smyslov Variation, Main Line"],
+"e4 c6 d4 d5 Nd2 dxe4 Nxe4 Nd7 Bc4 Ngf6 Nxf6+ Nxf6":["B17","Caro-Kann Defense: Karpov Variation, Tiviakov-Fischer Attack"],
+"e4 c6 d4 d5 Nd2 dxe4 Nxe4 Nd7 Ng5":["B17","Caro-Kann Defense: Karpov Variation, Modern Variation"],
+"e4 c6 d4 d5 Nd2 dxe4 Nxe4 Nd7 Ng5 Ndf6":["B17","Caro-Kann Defense: Karpov Variation, Modern Variation, Ivanchuk Defense"],
+"e4 c6 d4 d5 Nd2 dxe4 Nxe4 Nd7 Ng5 Ngf6 Bd3 e6 N1f3 Bd6 Qe2 h6 Ne4 Nxe4 Qxe4":["B17","Caro-Kann Defense: Karpov Variation, Modern Main Line"],
+"e4 c6 d4 d5 Nd2 dxe4 Nxe4 h6":["B16","Caro-Kann Defense: Finnish Variation"],
+"e4 c6 d4 d5 Nf3 dxe4 Ng5":["B12","Caro-Kann Defense: Ulysses Gambit"],
+"e4 c6 d4 d5 e5":["B12","Caro-Kann Defense: Advance Variation"],
+"e4 c6 d4 d5 e5 Bf5 Nc3":["B12","Caro-Kann Defense: Advance Variation, Van der Wiel Attack"],
+"e4 c6 d4 d5 e5 Bf5 Nc3 Qb6":["B12","Caro-Kann Defense: Advance Variation, Van der Wiel Attack, Dreyev Defense"],
+"e4 c6 d4 d5 e5 Bf5 Nc3 e6 g4 Bg6 Nge2 c5 h4":["B12","Caro-Kann Defense: Advance Variation, Van der Wiel Attack"],
+"e4 c6 d4 d5 e5 Bf5 Ne2":["B12","Caro-Kann Defense: Advance Variation, Bronstein Variation"],
+"e4 c6 d4 d5 e5 Bf5 Nf3":["B12","Caro-Kann Defense: Advance Variation, Short Variation"],
+"e4 c6 d4 d5 e5 Bf5 b4":["B12","Caro-Kann Defense: Advance Variation, Prins Attack"],
+"e4 c6 d4 d5 e5 Bf5 c3 e6 Be2":["B12","Caro-Kann Defense: Advance, Short Variation"],
+"e4 c6 d4 d5 e5 Bf5 g4":["B12","Caro-Kann Defense: Advance Variation, Bayonet Attack"],
+"e4 c6 d4 d5 e5 Bf5 h4":["B12","Caro-Kann Defense: Advance Variation, Tal Variation"],
+"e4 c6 d4 d5 e5 c5":["B12","Caro-Kann Defense: Advance Variation, Botvinnik-Carls Defense"],
+"e4 c6 d4 d5 exd5":["B13","Caro-Kann Defense: Exchange Variation"],
+"e4 c6 d4 d5 exd5 cxd5":["B13","Caro-Kann Defense: Exchange Variation"],
+"e4 c6 d4 d5 exd5 cxd5 Bd3 Nc6 c3 Nf6 Bf4":["B13","Caro-Kann Defense: Exchange Variation, Rubinstein Variation"],
+"e4 c6 d4 d5 exd5 cxd5 Bf4":["B13","Caro-Kann Defense: Exchange Variation"],
+"e4 c6 d4 d5 exd5 cxd5 Nf3 Nc6":["B13","Caro-Kann Defense: Exchange Variation"],
+"e4 c6 d4 d5 exd5 cxd5 c4":["B13","Caro-Kann Defense: Panov Attack"],
+"e4 c6 d4 d5 exd5 cxd5 c4 Nc6 Nc3 Nf6 Nf3 e6 cxd5 exd5 Bb5 Bd6 Bg5 O-O O-O":["B14","Caro-Kann Defense: Panov Attack"],
+"e4 c6 d4 d5 exd5 cxd5 c4 Nc6 Nc3 Nf6 Nf3 e6 cxd5 exd5 Bb5 Bg4":["B14","Caro-Kann Defense: Panov Attack"],
+"e4 c6 d4 d5 exd5 cxd5 c4 Nf6 Nc3":["B13","Caro-Kann Defense: Panov Attack"],
+"e4 c6 d4 d5 exd5 cxd5 c4 Nf6 Nc3 Nc6":["B13","Caro-Kann Defense: Panov Attack, Modern Defense"],
+"e4 c6 d4 d5 exd5 cxd5 c4 Nf6 Nc3 Nc6 Bg5 Qa5":["B13","Caro-Kann Defense: Panov Attack, Modern Defense, Czerniak Line"],
+"e4 c6 d4 d5 exd5 cxd5 c4 Nf6 Nc3 Nc6 Bg5 Qb6":["B13","Caro-Kann Defense: Panov Attack, Modern Defense, Reifir-Spielmann Line"],
+"e4 c6 d4 d5 exd5 cxd5 c4 Nf6 Nc3 Nc6 Bg5 dxc4 d5 Na5":["B13","Caro-Kann Defense: Panov-Botvinnik, Herzog Defense"],
+"e4 c6 d4 d5 exd5 cxd5 c4 Nf6 Nc3 Nc6 Bg5 e6":["B13","Caro-Kann Defense: Panov Attack, Modern Defense, Carlsbad Line"],
+"e4 c6 d4 d5 exd5 cxd5 c4 Nf6 Nc3 Nc6 Nf3 Bg4":["B13","Caro-Kann Defense: Panov Attack, Modern Defense, Mieses Line"],
+"e4 c6 d4 d5 exd5 cxd5 c4 Nf6 Nc3 Nc6 Nf3 e6 c5":["B14","Caro-Kann Defense: Panov Attack"],
+"e4 c6 d4 d5 exd5 cxd5 c4 Nf6 Nc3 e6":["B14","Caro-Kann Defense: Panov Attack"],
+"e4 c6 d4 d5 exd5 cxd5 c4 Nf6 Nc3 e6 Nf3 Bb4":["B14","Caro-Kann Defense: Panov Attack, Main Line"],
+"e4 c6 d4 d5 exd5 cxd5 c4 Nf6 Nc3 g6":["B14","Caro-Kann Defense: Panov Attack, Fianchetto Defense"],
+"e4 c6 d4 d5 exd5 cxd5 c4 Nf6 Nc3 g6 cxd5 Bg7":["B14","Caro-Kann Defense: Panov Attack, Fianchetto Defense, Fianchetto Gambit"],
+"e4 c6 d4 d5 exd5 cxd5 c4 Nf6 c5":["B13","Caro-Kann Defense: Panov Attack, Gunderam Attack"],
+"e4 c6 d4 d5 exd5 cxd5 g4":["B13","Caro-Kann Defense: Exchange Variation, Bulla Attack"],
+"e4 c6 d4 d5 f3":["B12","Caro-Kann Defense: Maróczy Variation"],
+"e4 c6 d4 d5 f3 dxe4 fxe4 e5 Nf3 exd4 Bc4":["B12","Caro-Kann Defense: Maróczy Variation, Maróczy Gambit"],
+"e4 c6 d4 f5":["B12","Caro-Kann Defense: Massachusetts Defense"],
+"e4 c6 g4":["B10","Caro-Kann Defense: Spike Variation"],
+"e4 c6 g4 d5 Nc3 dxe4 d3":["B10","Caro-Kann Defense: Spike Variation, Scorpion-Grob Gambit"],
+};
+
+// ── Caro-Kann repertoire tree ──
+// Keyed by SAN move path (move numbers stripped), matching CARO_NAMES.
+// Each value is either a list of moves for the side to move, or {a:"path"}
+// aliasing another node so transpositions resolve to one canonical line.
+//
+// Move entry: [san, tag, note?]
+//   White tags: main | side | rare   — how critical the try is, by theory
+//   Black tags: main | alt           — our repertoire choice vs playable second
+// Order within a node is theoretical importance, NOT player frequency.
+const CARO_TREE = {
+  "": [["e4","main"]],
+  "e4": [["c6","main","The Caro-Kann: support ...d5 with the c-pawn, keeping the light-squared bishop free."]],
+
+  // ── White's second moves ──
+  "e4 c6": [
+    ["d4","main","The main move. Builds the big centre and invites every major Caro-Kann branch."],
+    ["Nc3","main","Two Knights setup; usually transposes to the main lines after d4, but can stay independent."],
+    ["Nf3","main","Also the Two Knights move order."],
+    ["c4","side","Accelerated Panov. Fights for the centre before committing the d-pawn."],
+    ["d3","side","King's Indian Attack setup. Slow; Black gets an easy game with a full centre."],
+    ["Ne2","rare"],
+    ["b3","rare"],
+    ["Bc4","rare","Hillbilly Attack. Punished by ...d5 hitting the bishop at once."],
+    ["f4","rare"],
+    ["g3","rare"],
+    ["g4","rare"]
+  ],
+
+  "e4 c6 d4": [["d5","main","Strike the centre immediately. This is the whole point of 1...c6."]],
+
+  // ── White's third moves after 2.d4 d5 ──
+  "e4 c6 d4 d5": [
+    ["Nc3","main","Heads for the Classical after 3...dxe4 4.Nxe4."],
+    ["Nd2","main","Same idea as 3.Nc3, avoiding ...Bb4 lines. Transposes."],
+    ["e5","main","The Advance Variation. Grabs space and shuts the centre."],
+    ["exd5","main","The Exchange. Quiet, but 4.c4 turns it into the sharp Panov."],
+    ["f3","side","The Fantasy Variation. Aggressive and tricky, objectively fine for Black."],
+    ["Be3","rare"]
+  ],
+
+  // ── Advance Variation ──
+  "e4 c6 d4 d5 e5": [
+    ["Bf5","main","The point of the Caro-Kann: develop the bishop OUTSIDE the pawn chain before ...e6."],
+    ["c5","alt","A sharp modern alternative, hitting the chain at its base immediately."],
+    ["e6","alt","Playable but concedes the bishop the Caro-Kann exists to free."]
+  ],
+  "e4 c6 d4 d5 e5 Bf5": [
+    ["Nf3","main","The Short Variation. Solid development rather than an immediate attack on the bishop."],
+    ["Nc3","main","Prepares g4, hunting the bishop."],
+    ["h4","main","The Tal/Botvinnik idea: gain kingside space and harass the bishop with h5."],
+    ["Be3","side"],
+    ["c4","side"],
+    ["Be2","side"],
+    ["g4","rare","Premature — Black gets the bishop to safety and White's kingside is loose."]
+  ],
+
+  // Short Variation
+  "e4 c6 d4 d5 e5 Bf5 Nf3": [["e6","main","Now that the bishop is out, close the chain."]],
+  "e4 c6 d4 d5 e5 Bf5 Nf3 e6": [["Be2","main","The Short Variation proper: castle, then pressure the centre."],["Bd3","side","Trades off Black's good bishop, but loses time."],["c3","side"],["Be3","side"]],
+  "e4 c6 d4 d5 e5 Bf5 Nf3 e6 Be2": [["c5","main","Hit the base of the chain — Black's standard counterplay."],["Ne7","alt"]],
+  "e4 c6 d4 d5 e5 Bf5 Nf3 e6 Be2 c5": [["Be3","main"],["c3","side"],["O-O","side"],["c4","side"],["dxc5","rare"]],
+  "e4 c6 d4 d5 e5 Bf5 Nf3 e6 Be2 c5 Be3": [["cxd4","main","Release the tension and develop with tempo."],["Nd7","alt"],["Qb6","alt"]],
+  "e4 c6 d4 d5 e5 Bf5 Nf3 e6 Be2 c5 Be3 cxd4": [["Nxd4","main"],["Qxd4","rare"]],
+  "e4 c6 d4 d5 e5 Bf5 Nf3 e6 Be2 c5 Be3 cxd4 Nxd4": [["Ne7","main","Heading for c6 or g6 without blocking the c-file."],["Nc6","alt"]],
+
+  // Van der Wiel / 4.Nc3
+  "e4 c6 d4 d5 e5 Bf5 Nc3": [["e6","main"],["Qb6","alt"]],
+  "e4 c6 d4 d5 e5 Bf5 Nc3 e6": [["g4","main","The Van der Wiel Attack. Sharp, but the g-pawn is also a long-term weakness."],["Nge2","side"],["Be3","side"]],
+  "e4 c6 d4 d5 e5 Bf5 Nc3 e6 g4": [["Bg6","main","Retreat and let White's kingside pawns become targets."],["Bxg4","alt","Grabbing the pawn is possible but invites a strong attack."]],
+  "e4 c6 d4 d5 e5 Bf5 Nc3 e6 g4 Bg6": [["Nge2","main"],["h4","side"],["f4","side"]],
+  "e4 c6 d4 d5 e5 Bf5 Nc3 e6 g4 Bg6 Nge2": [["c5","main","Counter in the centre before White consolidates the space grab."],["Ne7","alt"]],
+
+  // 4.h4
+  "e4 c6 d4 d5 e5 Bf5 h4": [["h6","main","Stop h5 trapping the bishop, and keep h7 available."],["h5","alt","Blocks the pawn but concedes g5 squares."]],
+  "e4 c6 d4 d5 e5 Bf5 h4 h6": [["Nf3","main"],["g4","side"],["c4","side"],["h5","rare","Now ...Bh7 is comfortable and the h5 pawn is weak."]],
+  "e4 c6 d4 d5 e5 Bf5 h4 h6 Nf3": [["e6","main"],["Nd7","alt"]],
+  "e4 c6 d4 d5 e5 Bf5 Be3": [["e6","main"]],
+  "e4 c6 d4 d5 e5 Bf5 c4": [["e6","main"]],
+  "e4 c6 d4 d5 e5 Bf5 Be2": [["e6","main"]],
+
+  // ── Classical Variation ──
+  "e4 c6 d4 d5 Nc3": [
+    ["dxe4","main","Take: White's knight must recapture, and Black gets the bishop out before ...e6."],
+    ["g6","alt","The Gurgenidze setup — a different animal entirely."],
+    ["b5","alt","The Titov Gambit. Wild."]
+  ],
+  "e4 c6 d4 d5 Nc3 dxe4": [["Nxe4","main"],["f3","rare"]],
+  "e4 c6 d4 d5 Nc3 dxe4 Nxe4": [
+    ["Bf5","main","The Classical. Develop the bishop actively before locking it in with ...e6."],
+    ["Nd7","alt","The Karpov Variation. Solid and flexible, preparing ...Ngf6 without doubling pawns."],
+    ["Nf6","alt","Bronstein–Larsen: accepts doubled pawns for the open g-file."]
+  ],
+  "e4 c6 d4 d5 Nc3 dxe4 Nxe4 Bf5": [["Ng3","main","Gains time on the bishop."],["Nc5","rare"],["Ng5","rare"]],
+  "e4 c6 d4 d5 Nc3 dxe4 Nxe4 Bf5 Ng3": [["Bg6","main","The only good square — back into the corner diagonal."]],
+  "e4 c6 d4 d5 Nc3 dxe4 Nxe4 Bf5 Ng3 Bg6": [["h4","main","The main line: push the h-pawn to soften Black's kingside."],["Nf3","side"],["Bc4","side"],["N1e2","side"]],
+  "e4 c6 d4 d5 Nc3 dxe4 Nxe4 Bf5 Ng3 Bg6 h4": [["h6","main","Necessary — without it h5 traps the bishop."]],
+  "e4 c6 d4 d5 Nc3 dxe4 Nxe4 Bf5 Ng3 Bg6 h4 h6": [["Nf3","main"],["h5","side"],["Nh3","side"],["f4","rare"]],
+  "e4 c6 d4 d5 Nc3 dxe4 Nxe4 Bf5 Ng3 Bg6 h4 h6 Nf3": [["Nd7","main","Develop toward the centre and prepare ...Ngf6 without blocking the bishop."],["e6","alt"]],
+  "e4 c6 d4 d5 Nc3 dxe4 Nxe4 Bf5 Ng3 Bg6 h4 h6 Nf3 Nd7": [["h5","main","Now this comes with tempo."],["Bd3","side"],["Bc4","side"]],
+  "e4 c6 d4 d5 Nc3 dxe4 Nxe4 Bf5 Ng3 Bg6 h4 h6 Nf3 Nd7 h5": [["Bh7","main","The bishop has done its job; it will be traded next."]],
+  "e4 c6 d4 d5 Nc3 dxe4 Nxe4 Bf5 Ng3 Bg6 h4 h6 Nf3 Nd7 h5 Bh7": [["Bd3","main","White insists on the trade."]],
+  "e4 c6 d4 d5 Nc3 dxe4 Nxe4 Bf5 Ng3 Bg6 h4 h6 Nf3 Nd7 h5 Bh7 Bd3": [["Bxd3","main"]],
+  "e4 c6 d4 d5 Nc3 dxe4 Nxe4 Bf5 Ng3 Bg6 h4 h6 Nf3 Nd7 h5 Bh7 Bd3 Bxd3": [["Qxd3","main"]],
+  "e4 c6 d4 d5 Nc3 dxe4 Nxe4 Bf5 Ng3 Bg6 h4 h6 Nf3 Nd7 h5 Bh7 Bd3 Bxd3 Qxd3": [["e6","main","The main tabiya. Black is solid, slightly passive, and completely sound."],["Ngf6","alt"],["Qc7","alt"]],
+
+  // Karpov
+  "e4 c6 d4 d5 Nc3 dxe4 Nxe4 Nd7": [["Nf3","main"],["Bc4","main","The critical try, eyeing f7."],["Ng5","side","The Alien Gambit if followed by Nxf7."]],
+  "e4 c6 d4 d5 Nc3 dxe4 Nxe4 Nd7 Nf3": [["Ngf6","main"]],
+  "e4 c6 d4 d5 Nc3 dxe4 Nxe4 Nd7 Nf3 Ngf6": [["Nxf6+","main"],["Ng3","side"],["Bd3","side"]],
+
+  // 3.Nd2 — transposes
+  "e4 c6 d4 d5 Nd2": [["dxe4","main"]],
+  "e4 c6 d4 d5 Nd2 dxe4": [["Nxe4","main"]],
+  "e4 c6 d4 d5 Nd2 dxe4 Nxe4": { a: "e4 c6 d4 d5 Nc3 dxe4 Nxe4" },
+
+  // ── Exchange Variation ──
+  "e4 c6 d4 d5 exd5": [["cxd5","main","Recapture toward the centre; the c-file opens for the queen and rook."]],
+  "e4 c6 d4 d5 exd5 cxd5": [
+    ["Bd3","main","The Exchange proper. Quiet, symmetrical, a long game."],
+    ["c4","main","The Panov–Botvinnik Attack — a completely different, sharp game."],
+    ["Nf3","side"],
+    ["Nc3","side"],
+    ["Bb5+","side"]
+  ],
+  "e4 c6 d4 d5 exd5 cxd5 Bd3": [["Nc6","main","Pressure d4 immediately."],["Nf6","alt"]],
+  "e4 c6 d4 d5 exd5 cxd5 Bd3 Nc6": [["c3","main"],["Nf3","side"],["Ne2","side"]],
+  "e4 c6 d4 d5 exd5 cxd5 Bd3 Nc6 c3": [["Nf6","main"],["Qc7","alt"]],
+  "e4 c6 d4 d5 exd5 cxd5 Bd3 Nc6 c3 Nf6": [["Bf4","main"],["h3","side"],["Nf3","side"]],
+  "e4 c6 d4 d5 exd5 cxd5 Bd3 Nc6 c3 Nf6 Bf4": [["Bg4","main","Pin the defender of d4 before White plays h3."],["g6","alt"],["e6","alt"]],
+
+  // ── Panov–Botvinnik ──
+  "e4 c6 d4 d5 exd5 cxd5 c4": [["Nf6","main","Develop and hit d5 — White must decide what to do with the c-pawn."]],
+  "e4 c6 d4 d5 exd5 cxd5 c4 Nf6": [["Nc3","main"],["cxd5","side","Leads to a symmetrical, drawish structure."],["Nf3","side"]],
+  "e4 c6 d4 d5 exd5 cxd5 c4 Nf6 Nc3": [
+    ["e6","main","Solid: hold d5 and develop. Often transposes to a Nimzo/QGD structure."],
+    ["Nc6","alt","The sharpest, inviting the isolated queen's pawn positions."],
+    ["g6","alt","The Gruenfeld-flavoured setup."]
+  ],
+  "e4 c6 d4 d5 exd5 cxd5 c4 Nf6 Nc3 e6": [["Nf3","main"],["c5","side","Grabs space but releases the tension on d5."],["cxd5","side"],["Bg5","side"]],
+  "e4 c6 d4 d5 exd5 cxd5 c4 Nf6 Nc3 e6 Nf3": [["Bb4","main","Pin the knight and hit the centre."],["Be7","alt"],["dxc4","alt"]],
+
+  // ── Fantasy Variation ──
+  "e4 c6 d4 d5 f3": [
+    ["e6","main","The solid answer: keep the centre closed and develop; White's f3 is a long-term weakness."],
+    ["dxe4","alt","Principled but leads to sharp gambit play after fxe4."],
+    ["Qb6","alt","Immediately hitting the weakened dark squares and b2."]
+  ],
+  "e4 c6 d4 d5 f3 e6": [["Nc3","main"],["Be3","side"],["Bd3","side"]],
+  "e4 c6 d4 d5 f3 dxe4": [["fxe4","main"],["Nc3","side"]],
+
+  // ── Two Knights ──
+  "e4 c6 Nc3": [["d5","main"]],
+  "e4 c6 Nc3 d5": [["Nf3","main","The Two Knights proper."],["d4","main"],["Qf3","rare","The Goldman — the queen is misplaced."],["exd5","side"]],
+  "e4 c6 Nc3 d5 d4": { a: "e4 c6 d4 d5 Nc3" },
+  "e4 c6 Nc3 d5 Nf3": [["Bg4","main","Pin the knight before White plays h3 — the point of meeting the Two Knights."],["dxe4","alt"],["Nf6","alt"]],
+  "e4 c6 Nc3 d5 Nf3 Bg4": [["h3","main"],["d4","side"],["exd5","side"]],
+  "e4 c6 Nc3 d5 Nf3 Bg4 h3": [["Bxf3","main","Give up the bishop: White's structure is compromised by the recapture."]],
+  "e4 c6 Nc3 d5 Nf3 Bg4 h3 Bxf3": [["Qxf3","main"],["gxf3","rare"]],
+  "e4 c6 Nc3 d5 Nf3 Bg4 h3 Bxf3 Qxf3": [["Nf6","main"],["e6","alt"],["dxe4","alt"]],
+
+  "e4 c6 Nf3": [["d5","main"]],
+  "e4 c6 Nf3 d5": [["Nc3","main"],["d3","side","The Endgame Variation if White follows with dxe4."],["exd5","side"],["e5","side"]],
+  "e4 c6 Nf3 d5 Nc3": { a: "e4 c6 Nc3 d5 Nf3" },
+  "e4 c6 Nf3 d5 d3": [["dxe4","main"],["Nf6","alt"]],
+
+  // ── Accelerated Panov ──
+  "e4 c6 c4": [["d5","main","Still the right move — White's centre is not yet coordinated."]],
+  "e4 c6 c4 d5": [["exd5","main"],["cxd5","side"],["e5","side"]],
+  "e4 c6 c4 d5 exd5": [["cxd5","main"]],
+  "e4 c6 c4 d5 exd5 cxd5": [["cxd5","main"],["d4","side"],["Qb3","side","The Van Weersel Attack."]],
+  "e4 c6 c4 d5 exd5 cxd5 cxd5": [["Nf6","main","Regain the pawn — d5 cannot be held."]],
+  "e4 c6 c4 d5 exd5 cxd5 cxd5 Nf6": [["Nc3","main"],["Bb5+","side"],["Qa4+","side"],["d4","side"]],
+
+  // ── King's Indian Attack / 2.d3 ──
+  "e4 c6 d3": [["d5","main"]],
+  "e4 c6 d3 d5": [["Nd2","main"],["Nf3","side"],["Qe2","side"]],
+  "e4 c6 d3 d5 Nd2": [["e5","main","Take the full centre — White's setup is too slow to punish it."],["g6","alt"],["dxe4","alt"]],
+
+  // ── Offbeat second moves ──
+  "e4 c6 Bc4": [["d5","main","Hits the bishop immediately and White has already lost time."]],
+  "e4 c6 b3": [["d5","main"]],
+  "e4 c6 Ne2": [["d5","main"]],
+  "e4 c6 f4": [["d5","main"]],
+  "e4 c6 g3": [["d5","main"]],
+  "e4 c6 g4": [["d5","main","Ignore the flank lunge and take the centre."]]
+};
+
+let repertoire = 'off';          // 'off' | 'caro'
+let repPending = null;           // set when the player has left the tree
+let repOpponentLeft = false;     // opponent has gone off-tree this game
+
+// SAN path of the game so far, optionally truncated to `len` plies.
+function repPath(len) {
+  const n = len === undefined ? history.length : Math.max(0, len);
+  return history.slice(0, n).map(h => h.san).join(' ');
+}
+
+// Resolve a node, following transposition aliases (bounded, so a bad
+// alias cycle can never hang the page).
+function repNode(path) {
+  if (repertoire === 'off') return null;
+  let node = CARO_TREE[path];
+  for (let i = 0; node && node.a !== undefined && i < 8; i++) node = CARO_TREE[node.a];
+  return (node && node.a === undefined) ? node : null;
+}
+
+// Longest-prefix name lookup: an unnamed position inherits the name of
+// the last named position on the way to it.
+function repName(path) {
+  const parts = path === '' ? [] : path.split(' ');
+  for (let i = parts.length; i > 0; i--) {
+    const hit = CARO_NAMES[parts.slice(0, i).join(' ')];
+    if (hit) return { eco: hit[0], name: hit[1], exact: i === parts.length };
+  }
+  return null;
+}
+
+// Classify one move played from `path`. null means the position itself is
+// off-tree; {tag:null} means the position is known but the move is not.
+function repClassify(path, san) {
+  const node = repNode(path);
+  if (!node) return null;
+  const hit = node.find(m => m[0] === san);
+  if (!hit) return { tag: null, note: null, node };
+  return { tag: hit[1], note: hit[2] || null, node };
+}
+
+const REP_LABEL = {
+  main: ['Main line', 'var(--accent)'],
+  side: ['Sideline', 'var(--amber)'],
+  rare: ['Offbeat', 'var(--text2)'],
+  alt:  ['Playable alternative', 'var(--amber)']
+};
+
+// Filter explorer moves to those the repertoire lists for this position.
+// Returns null when no restriction applies, so the caller falls back to
+// sampling real player frequencies across every move.
+function repRestrict(path, moves) {
+  if (repertoire === 'off' || !moves) return null;
+  // Move 1 is forced, otherwise the game is simply not a Caro-Kann.
+  if (history.length === 0) {
+    const e4 = moves.filter(m => m.san === 'e4');
+    return e4.length ? e4 : null;
+  }
+  return null;  // opponent otherwise roams freely, per design
+}
+
+// Render the repertoire line in the Stats card for the position being viewed.
+function repUpdateStatus() {
+  const row = document.getElementById('rep-row');
+  if (repertoire === 'off') { row.style.display = 'none'; return; }
+  row.style.display = '';
+  const el = document.getElementById('rep-status');
+  const path = repPath(viewIndex + 1);
+  const nm = repName(path);
+  // In-tree if the position itself is a node, or the move that reached it
+  // was a listed repertoire move.
+  const inTree = !!repNode(path) ||
+    (viewIndex >= 0 && !!(history[viewIndex] || {}).repTag) ||
+    (viewIndex < 0);
+  if (nm) {
+    el.textContent = nm.name.replace(/^Caro-Kann Defense:?\s*/, '') || 'Caro-Kann';
+    el.style.color = inTree ? 'var(--accent)' : 'var(--text2)';
+    el.title = nm.eco + ' — ' + nm.name + (nm.exact ? '' : ' (nearest named position)');
+  } else {
+    el.textContent = repOpponentLeft ? 'off repertoire' : '—';
+    el.style.color = 'var(--text2)';
+    el.title = '';
+  }
+}
+
+// The player has played a move that is not in the repertoire. Show the
+// choice panel — deliberately WITHOUT revealing the book moves, which are
+// only shown on request.
+function repShowOffBook(san, path) {
+  repPending = { san, path };
+  const content = document.getElementById('feedback-content');
+  document.getElementById('feedback-card').style.display = '';
+  const nm = repName(path);
+  content.innerHTML =
+    '<div style="font-size:11px;color:var(--red);text-transform:uppercase;letter-spacing:0.5px">Off repertoire</div>' +
+    '<div class="feedback-move">' + san + '</div>' +
+    '<div style="color:var(--text2);font-size:13px;margin-bottom:10px">' +
+      'Not a repertoire move' + (nm ? ' in the <strong>' + nm.name + '</strong>' : '') + '.' +
+    '</div>' +
+    '<div id="rep-reveal" style="margin-bottom:10px"></div>' +
+    '<div style="display:flex;gap:6px;flex-wrap:wrap">' +
+      '<button class="primary" id="rep-undo" style="font-size:12px;padding:5px 10px">Take it back</button>' +
+      '<button id="rep-show" style="font-size:12px;padding:5px 10px">Show book moves</button>' +
+      '<button id="rep-continue" style="font-size:12px;padding:5px 10px">Play on</button>' +
+    '</div>';
+  document.getElementById('rep-undo').onclick = repTakeback;
+  document.getElementById('rep-show').onclick = repReveal;
+  document.getElementById('rep-continue').onclick = repPlayOn;
+}
+
+// Reveal the book moves for the pending position only, on demand.
+function repReveal() {
+  if (!repPending) return;
+  const node = repNode(repPending.path);
+  const box = document.getElementById('rep-reveal');
+  if (!box) return;
+  if (!node) { box.innerHTML = '<div style="color:var(--text2);font-size:12px">No repertoire entry for this position.</div>'; return; }
+  let h = '<div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Book moves here</div>';
+  for (const [san, tag, note] of node) {
+    const [label, colour] = REP_LABEL[tag] || ['', 'var(--text2)'];
+    h += '<div style="margin-bottom:5px">' +
+           '<span style="font-weight:600">' + san + '</span> ' +
+           '<span style="font-size:11px;color:' + colour + '">' + label + '</span>' +
+           (note ? '<div style="font-size:11px;color:var(--text2);line-height:1.4">' + note + '</div>' : '') +
+         '</div>';
+  }
+  box.innerHTML = h;
+  document.getElementById('rep-show').disabled = true;
+}
+
+// Undo the off-repertoire move and hand the turn back.
+function repTakeback() {
+  if (!repPending) return;
+  game.undo();
+  history.pop();
+  viewIndex = history.length - 1;
+  repPending = null;
+  cachedFenForEval = game.fen();
+  renderCurrentView();
+  renderMoveList();
+  updateNavButtons();
+  repUpdateStatus();
+  document.getElementById('book-depth').textContent = history.length + ' ply';
+  const content = document.getElementById('feedback-content');
+  content.innerHTML = '<div style="color:var(--text2);font-size:13px">Taken back — your move.</div>';
+}
+
+// Accept the off-repertoire move and let the game continue normally.
+function repPlayOn() {
+  if (!repPending) return;
+  repPending = null;
+  repOpponentLeft = true;
+  document.getElementById('feedback-content').innerHTML =
+    '<div style="color:var(--text2);font-size:13px">Playing on off repertoire.</div>';
+  computerTurn();
+}
+
 // ── Settings persistence ──
 const STORAGE_KEY = 'opening-trainer-settings';
 
@@ -507,6 +983,7 @@ function saveSettings() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       color: document.getElementById('color-select').value,
+      repertoire: document.getElementById('rep-select').value,
       rating: selectedRating,
       speeds: selectedSpeeds,
       minGames: minGames
@@ -520,6 +997,13 @@ function loadSettings() {
     if (!raw) return;
     const s = JSON.parse(raw);
     if (s.color) document.getElementById('color-select').value = s.color;
+    if (s.repertoire) {
+      repertoire = s.repertoire;
+      document.getElementById('rep-select').value = s.repertoire;
+      const csel = document.getElementById('color-select');
+      csel.disabled = s.repertoire !== 'off';
+      if (s.repertoire === 'caro') csel.value = 'b';
+    }
     if (s.rating) {
       selectedRating = s.rating;
       document.getElementById('rating-select').value = s.rating;
@@ -1084,6 +1568,17 @@ function navigateTo(idx) {
   // The board-end-banner is always shown when out of book; no need to hide it during review navigation.
 }
 
+// The repertoire verdict for a stored move, shown above the usual
+// frequency/engine feedback. Empty unless the mode tagged this move.
+function repVerdictHtml(entry) {
+  if (repertoire === 'off' || !entry || !entry.repTag) return '';
+  const [label, colour] = REP_LABEL[entry.repTag] || ['', 'var(--text2)'];
+  return '<div style="border-left:3px solid ' + colour + ';padding-left:8px;margin-bottom:8px">' +
+    '<div style="font-size:11px;color:' + colour + ';text-transform:uppercase;letter-spacing:0.5px;font-weight:600">' + label + '</div>' +
+    (entry.repNote ? '<div style="font-size:12px;color:var(--text2);line-height:1.45">' + entry.repNote + '</div>' : '') +
+    '</div>';
+}
+
 function showFeedbackForView() {
   const card = document.getElementById('feedback-card');
   const content = document.getElementById('feedback-content');
@@ -1093,7 +1588,7 @@ function showFeedbackForView() {
     // Show player feedback always; opponent feedback only after game ends
     if (entry.feedbackHtml && (isPlayerMove || outOfBook)) {
       card.style.display = '';
-      content.innerHTML = entry.feedbackHtml;
+      content.innerHTML = repVerdictHtml(entry) + entry.feedbackHtml;
       return;
     }
   }
@@ -1101,6 +1596,7 @@ function showFeedbackForView() {
 }
 
 function showOpeningForView() {
+  repUpdateStatus();
   if (viewIndex < 0) {
     document.getElementById('opening-name').textContent = 'Starting Position';
     document.getElementById('opening-eco').textContent = '';
@@ -1392,6 +1888,25 @@ async function tryMove(from, to) {
   // Capture generation to detect if a new game started during eval
   const gen = gameGeneration;
 
+  // Repertoire mode: if this move leaves the tree, stop here and offer the
+  // choice. The opponent must not reply yet — otherwise taking the move
+  // back would mean unwinding two plies.
+  if (repertoire !== 'off' && !repOpponentLeft) {
+    const pathBefore = repPath(histIdx);
+    const verdict = repClassify(pathBefore, move.san);
+    if (verdict && verdict.tag === null) {
+      renderCurrentView();
+      repUpdateStatus();
+      repShowOffBook(move.san, pathBefore);
+      return true;
+    }
+    if (verdict) {
+      history[histIdx].repTag = verdict.tag;
+      history[histIdx].repNote = verdict.note;
+    }
+    repUpdateStatus();
+  }
+
   // Start computer turn in parallel
   const computerPromise = computerTurn();
 
@@ -1519,7 +2034,8 @@ async function computerTurn() {
   document.getElementById('thinking').classList.add('visible');
   await new Promise(r => setTimeout(r, 300 + Math.random() * 500));
 
-  const chosen = selectComputerMove(data.moves);
+  const repPool = repRestrict(repPath(), data.moves);
+  const chosen = selectComputerMove(repPool || data.moves);
   if (!chosen) {
     isComputerTurn = false;
     document.getElementById('thinking').classList.remove('visible');
@@ -1532,6 +2048,12 @@ async function computerTurn() {
     document.getElementById('thinking').classList.remove('visible');
     await endOfBook();
     return;
+  }
+
+  // Did the opponent stay inside the repertoire? Label it either way.
+  if (repertoire !== 'off' && !repOpponentLeft) {
+    const v = repClassify(repPath(history.length), move.san);
+    if (v && v.tag === null) repOpponentLeft = true;
   }
 
   const compStats = data.moves.find(m => m.san === move.san);
@@ -1735,6 +2257,14 @@ document.querySelectorAll('#speed-select .chip').forEach(chip => {
 
 // ── Settings change listeners ──
 document.getElementById('color-select').addEventListener('change', saveSettings);
+document.getElementById('rep-select').addEventListener('change', (e) => {
+  // Colour is forced in a repertoire mode, so reflect that in the UI.
+  const csel = document.getElementById('color-select');
+  csel.disabled = e.target.value !== 'off';
+  if (e.target.value === 'caro') csel.value = 'b';
+  saveSettings();
+  newGame();
+});
 document.getElementById('rating-select').addEventListener('change', (e) => { selectedRating = e.target.value; saveSettings(); });
 document.getElementById('min-games').addEventListener('change', (e) => {
   minGames = Math.max(1, parseInt(e.target.value) || 20);
@@ -1845,8 +2375,14 @@ async function newGame() {
   const banner = document.getElementById('api-fallback-banner');
   if (banner) banner.style.display = 'none';
 
+  repPending = null;
+  repOpponentLeft = false;
+  repertoire = document.getElementById('rep-select').value;
+
   const cs = document.getElementById('color-select').value;
   playerColor = cs === 'random' ? (Math.random() < 0.5 ? 'w' : 'b') : cs;
+  // The Caro-Kann is a defence — it only exists with Black.
+  if (repertoire === 'caro') playerColor = 'b';
   selectedRating = document.getElementById('rating-select').value;
 
   document.getElementById('feedback-card').style.display = 'none';
@@ -1865,6 +2401,7 @@ async function newGame() {
   document.getElementById('thinking').classList.remove('visible');
   document.getElementById('history-banner').classList.remove('visible');
   updateNavButtons();
+  repUpdateStatus();
   renderBoardFromFen(START_FEN, []);
 
   // No API call here — data is fetched lazily on first move (tryMove or computerTurn)
